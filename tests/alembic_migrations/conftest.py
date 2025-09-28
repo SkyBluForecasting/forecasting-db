@@ -1,8 +1,7 @@
 import pytest
-from sqlalchemy import create_engine
-
 from alembic import command
 from alembic.config import Config
+from sqlalchemy import create_engine
 
 # Use a dedicated test database, e.g. "postgres://user:pass@localhost:5432/test_db"
 TEST_DB_URL = "postgresql://postgres:localpass@localhost:5432/appdb"
