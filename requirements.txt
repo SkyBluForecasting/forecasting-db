@@ -1,0 +1,11 @@
+alembic
+sqlalchemy
+psycopg2-binary
+
+# Development dependencies
+black==25.1.0
+isort==5.13.2
+pytest-cov==4.1.0
+pytest-mock==3.13.0
+flake8-docstrings==1.6.0
+flake8==6.0.0
