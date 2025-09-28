@@ -10,6 +10,25 @@ jobs:
   test:
     name: Test and Coverage
     runs-on: ubuntu-latest
+
+    services:
+        postgres:
+            image: timescale/timescaledb:latest-pg15
+            env:
+                POSTGRES_USER: postgres
+                POSTGRES_PASSWORD: localpass
+                POSTGRES_DB: appdb
+            ports:
+                - 5432:5432
+            options:
+                --health-cmd="pg_isready -U postgres"
+                --health-interval=10s
+                --health-timeout=5s
+                --health-retries=5
+
+    env:
+      TEST_DB_URL: postgresql://postgres:localpass@localhost:5432/appdb
+
     strategy:
       matrix:
         python-version: ["3.10"]
