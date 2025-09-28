@@ -1,21 +1,58 @@
-# Forecasting Database
+## Table of Contents
 
-PostgreSQL TimescaleDB for storing forecasts, historical data, and training data.
+- [Quick Start](#quick-start)
+- [Project Overview](#project-overview)
+- [Project Structure](#project-structure)
+- [Local Development Setup](#local-development-setup)
+- [Database Schema](#database-schema)
+- [Database Migrations](#database-migrations)
+- [Development Workflow](#development-workflow)
+- [Pre-Commit Hooks](#pre-commit-hooks)
 
+## Quick Start
+
+```bash
+# Clone and setup
+git clone <repository-url>
+cd forecasting-db
+python -m venv venv
+source venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+pip install -e .
+
+# Start database
+docker compose up -d
+
+# Run migrations
+alembic upgrade head
+```
+
+## Project Overview
+
+This project provides a Python package for managing forecast data in TimescaleDB, a PostgreSQL extension optimized for time-series data. The package includes:
+
+- **SQLAlchemy Models**: Type-safe database models for forecast data
+- **Alembic Migrations**: Version-controlled database schema management
+- **Docker Environment**: Containerized TimescaleDB with Adminer for database administration
+- **Testing Framework**: Comprehensive test suite with migration testing
 
 ## Project Structure
 
 ```
 forecasting-db/
-├── alembic/           # Alembic database migrations
+├── forecasting_db/      # Python package
+│   └── models.py       # SQLAlchemy models
+├── alembic_migrations/  # Alembic database migrations
 │   ├── versions/        # Migration files
-│   ├── env.py          # Alembic environment configuration
-│   └── script.py.mako  # Migration template
-├── tests/              # Test files
-├── alembic.ini         # Alembic configuration
-├── docker-compose.yml  # Docker services configuration
-├── requirements.txt    # Python dependencies
-└── README.md          # This file
+│   ├── env.py           # Alembic environment configuration
+│   └── script.py.mako   # Migration template
+├── tests/               # Tests
+├── alembic.ini          # Alembic configuration
+├── docker-compose.yml   # Docker services configuration
+├── requirements.txt     # Python dependencies
+└── setup.py            # Package setup configuration
 ```
 
 ## Local Development Setup
@@ -54,7 +91,7 @@ This starts:
 - **TimescaleDB**: PostgreSQL with time-series extensions
 - **Adminer**: Web-based database administration tool
 
-### 4. Database Connection Details
+### 5. Database Connection Details
 
 To access the database with psql, run:
 
@@ -96,7 +133,6 @@ alembic current
 alembic history
 ```
 
-
 ## Development Workflow
 
 ### 1. Database Changes
@@ -108,9 +144,16 @@ alembic history
 
 ### 2. Testing
 
+To run tests:
+
 ```bash
-# Run tests
 python -m pytest tests/
+```
+
+To run tests and also check coverage:
+
+```bash
+coverage run -m pytest tests/ && coverage report -m
 ```
 
 ### 3. Stopping Services
@@ -129,23 +172,11 @@ docker compose up -d
 rm -rf pgdata/
 ```
 
-## Pre-Commit
+## Pre-Commit Hooks
 
-Pre-commit hooks are set-up for this repo. To run them locally:
+Pre-commit hooks are configured for this repository. To run them locally:
 ```bash
 pip install pre-commit
 pre-commit install
 pre-commit run --all-files
 ```
-
-## Configuration
-
-### Environment Variables
-
-The project uses the following default configuration in `alembic.ini`:
-
-```
-sqlalchemy.url = postgresql+psycopg2://postgres:localpass@localhost:5432/appdb
-```
-
-To use different database credentials, update the connection string in `alembic.ini` or set environment variables.

@@ -73,6 +73,6 @@ def run_migrations_online() -> None:
 
 
 if context.is_offline_mode():
-    run_migrations_offline()  # pragma: no cover
+    run_migrations_offline()  # pragma: no
 else:
     run_migrations_online()
