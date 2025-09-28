@@ -1,2 +1,0 @@
-# Don’t copy local database files into container images
-pgdata/
