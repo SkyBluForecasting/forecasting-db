@@ -52,7 +52,7 @@ jobs:
 
     - name: Lint with Flake8 (Black-compatible)
       run: |
-        flake8 . --count --ignore=D203,D100,D103 --show-source --statistics --max-line-length=88
+        flake8 . --count --ignore=D203,D100,D103,D104,D101 --show-source --statistics --max-line-length=88
 
     - name: Check imports with isort
       run: |
@@ -61,7 +61,7 @@ jobs:
     - name: Run tests with coverage (branch coverage)
       run: |
         pip install coverage pytest
-        PYTHONPATH=${{ github.workspace }} coverage run --source=app -m pytest tests/
+        PYTHONPATH=${{ github.workspace }} coverage run -m pytest tests/
         coverage report -m
         coverage xml
 

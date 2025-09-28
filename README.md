@@ -38,7 +38,13 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### 3. Start Database Services
+### 3. Install the package in editable mode (so imports work if running things locally)
+
+```bash
+pip install -e .
+```
+
+### 4. Start Database Services
 
 ```bash
 docker compose up -d
@@ -49,6 +55,10 @@ This starts:
 - **Adminer**: Web-based database administration tool
 
 ### 4. Database Connection Details
+
+To access the database with psql, run:
+
+`docker compose exec timescaledb psql -U postgres`
 
 **TimescaleDB Connection:**
 - Host: `localhost`
@@ -73,8 +83,8 @@ This starts:
 # Apply all pending migrations
 alembic upgrade head
 
-# Create a new migration (or create manually to give it a custom ID)
-alembic revision --autogenerate -m "description of changes"
+# Create a new migration
+alembic revision --autogenerate -m "name of migration"
 
 # Downgrade to previous version
 alembic downgrade -1
