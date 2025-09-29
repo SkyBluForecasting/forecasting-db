@@ -1,0 +1,65 @@
+name: Deploy to Staging
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Git tag to deploy'
+        required: true
+
+jobs:
+  deploy-and-migrate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Set up SSH key
+        uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: ${{ secrets.EC2_SSH_KEY_STAGING }}
+
+      - name: Copy project files to EC2
+        run: |
+          rsync -avz --delete \
+            --exclude='.git' \
+            --exclude='tests' \
+            --exclude='venv' \
+            -e "ssh -o StrictHostKeyChecking=no" \
+            ./ ${{ secrets.EC2_USER_STAGING }}@${{ secrets.EC2_HOST_STAGING }}:~/forecasting-db
+
+      - name: Upload .env to EC2
+        run: |
+          echo "${{ secrets.ENV_FILE_STAGING }}" > temp.env
+          scp -o StrictHostKeyChecking=no temp.env \
+            ${{ secrets.EC2_USER_STAGING }}@${{ secrets.EC2_HOST_STAGING }}:~/forecasting-db/.env
+          rm temp.env
+
+      - name: SSH into EC2 and run migrations
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER_STAGING }}@${{ secrets.EC2_HOST_STAGING }} << 'EOF'
+            set -e
+            cd ~/forecasting-db
+
+            echo "--- CHECK PROJECT FILES ---"
+            ls -la
+
+            # Create venv if it doesn't exist
+            if [ ! -d "venv" ]; then
+              python3 -m venv venv
+            fi
+
+            # Activate venv and install dependencies
+            source venv/bin/activate
+            pip install --upgrade pip
+            pip install -r requirements.txt
+
+            # Run Alembic migrations against RDS
+            alembic upgrade head
+
+            echo "--- MIGRATIONS APPLIED SUCCESSFULLY ---"
+          EOF

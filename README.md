@@ -22,6 +22,9 @@ source venv/bin/activate
 pip install -r requirements.txt
 pip install -e .
 
+# Create a .env file with your database URL for running locally
+echo "SQLALCHEMY_URL=postgresql+psycopg2://postgres:localpass@localhost:5432/appdb" > .env
+
 # Start database
 docker compose up -d
 
@@ -81,7 +84,13 @@ pip install -r requirements.txt
 pip install -e .
 ```
 
-### 4. Start Database Services
+### 4. Create an env file
+
+```bash
+echo "SQLALCHEMY_URL=postgresql+psycopg2://postgres:localpass@localhost:5432/appdb" > .env
+```
+
+### 5. Start Database Services
 
 ```bash
 docker compose up -d
@@ -91,7 +100,7 @@ This starts:
 - **TimescaleDB**: PostgreSQL with time-series extensions
 - **Adminer**: Web-based database administration tool
 
-### 5. Database Connection Details
+### 6. Database Connection Details
 
 To access the database with psql, run:
 
