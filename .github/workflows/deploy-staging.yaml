@@ -32,7 +32,6 @@ jobs:
             -e "ssh -o StrictHostKeyChecking=no" \
             ./ ${{ secrets.EC2_USER_STAGING }}@${{ secrets.EC2_HOST_STAGING }}:~/forecasting-db
 
-      # 4️⃣ Upload .env with RDS credentials
       - name: Upload .env to EC2
         run: |
           echo "${{ secrets.ENV_FILE_STAGING }}" > temp.env
@@ -40,7 +39,6 @@ jobs:
             ${{ secrets.EC2_USER_STAGING }}@${{ secrets.EC2_HOST_STAGING }}:~/forecasting-db/.env
           rm temp.env
 
-      # 5️⃣ SSH into EC2, install dependencies, and run migrations
       - name: SSH into EC2 and run migrations
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER_STAGING }}@${{ secrets.EC2_HOST_STAGING }} << 'EOF'
