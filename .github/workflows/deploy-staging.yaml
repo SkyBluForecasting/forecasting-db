@@ -40,23 +40,6 @@ jobs:
             ${{ secrets.EC2_USER_STAGING }}@${{ secrets.EC2_HOST_STAGING }}:~/forecasting-db/.env
           rm temp.env
 
-      - name: SSH into EC2 and deploy app
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER_STAGING }}@${{ secrets.EC2_HOST_STAGING }} << 'EOF'
-            set -e
-            cd ~/forecasting-db
-
-            echo "--- SHOW PROJECT FILES ---"
-            ls -la
-
-            echo "--- BUILD & RUN APP CONTAINER ---"
-            docker compose -f docker-compose.yml up -d --build timescaledb adminer
-
-            echo "--- CHECK RUNNING CONTAINERS ---"
-            docker ps
-          EOF
-
-
       # 5️⃣ SSH into EC2, install dependencies, and run migrations
       - name: SSH into EC2 and run migrations
         run: |
