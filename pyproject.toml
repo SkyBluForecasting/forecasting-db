@@ -1,0 +1,7 @@
+[tool.isort]
+profile = "black"             # keeps isort compatible with black formatting
+multi_line_output = 3         # vertical hanging indent (keeps parentheses)
+include_trailing_comma = true # good for multi-line imports
+force_grid_wrap = 0
+use_parentheses = true
+line_length = 88              # adjust to your project style
