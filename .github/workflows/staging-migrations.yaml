@@ -26,10 +26,12 @@ jobs:
           source venv/bin/activate
           pip install --upgrade pip
           pip install -r requirements.txt
+          pip install -e .
 
       - name: Run Alembic migrations
         env:
-          DATABASE_URL: ${{ secrets.RDS_URL_STAGING }}  # e.g. postgres://user:pass@host:5432/db
+          DATABASE_URL: ${{ secrets.RDS_URL_STAGING }}
+          PYTHONPATH: ${{ github.workspace }}
         run: |
           source venv/bin/activate
           alembic upgrade head
