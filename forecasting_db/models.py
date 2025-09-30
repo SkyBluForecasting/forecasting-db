@@ -12,6 +12,8 @@ from sqlalchemy.orm import declarative_base
 
 Base = declarative_base()
 
+# TODO: Eventually as our schema grows, should split this out into multiple files.
+
 
 class Forecasts(Base):
     __tablename__ = "forecasts"

@@ -5,3 +5,7 @@ include_trailing_comma = true # good for multi-line imports
 force_grid_wrap = 0
 use_parentheses = true
 line_length = 88              # adjust to your project style
+
+[tool.flake8]
+max-line-length = 88
+ignore = ["D203", "D100", "D103", "D104", "D101", "W503"]
