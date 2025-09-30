@@ -28,6 +28,13 @@ jobs:
           pip install -r requirements.txt
           pip install -e .
 
+      - name: Debug SQLALCHEMY_URL
+        run: |
+          echo "SQLALCHEMY_URL (masked) = ${SQLALCHEMY_URL/$(echo $DB_PASSWORD)/***}"
+          echo "First 30 chars: ${SQLALCHEMY_URL:0:30}"
+        env:
+          SQLALCHEMY_URL: ${{ secrets.SQLALCHEMY_URL }}
+
       - name: Run Alembic migrations
         env:
           SQLALCHEMY_URL: ${{ secrets.SQLALCHEMY_URL }}
