@@ -30,7 +30,7 @@ jobs:
 
       - name: Debug SQLALCHEMY_URL parsing
         env:
-          SQLALCHEMY_URL: ${{ secrets.SQLALCHEMY_URL_STAGING }}
+          SQLALCHEMY_URL: ${{ secrets.SQLALCHEMY_URL }}
         run: |
           source venv/bin/activate
           python3 .github/debug.py
