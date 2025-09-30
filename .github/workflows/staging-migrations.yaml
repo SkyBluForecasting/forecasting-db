@@ -1,10 +1,10 @@
-name: Deploy to Staging
+name: Run DB Migrations
 
 on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Git tag to deploy'
+        description: 'Git tag to use'
         required: true
 
 jobs:
