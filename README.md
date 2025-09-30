@@ -1,7 +1,7 @@
 ## Table of Contents
 
-- [Quick Start](#quick-start)
 - [Project Overview](#project-overview)
+- [Quick Start](#quick-start)
 - [Project Structure](#project-structure)
 - [Local Development Setup](#local-development-setup)
 - [Database Schema](#database-schema)
@@ -9,53 +9,33 @@
 - [Development Workflow](#development-workflow)
 - [Pre-Commit Hooks](#pre-commit-hooks)
 
-## Quick Start
-
-```bash
-# Clone and setup
-git clone <repository-url>
-cd forecasting-db
-python -m venv venv
-source venv/bin/activate
-
-# Install dependencies
-pip install -r requirements.txt
-pip install -e .
-
-# Create a .env file with your database URL for running locally
-echo "SQLALCHEMY_URL=postgresql+psycopg2://postgres:localpass@localhost:5432/appdb" > .env
-
-# Start database
-docker compose up -d
-
-# Run migrations
-alembic upgrade head
-```
 
 ## Project Overview
 
-This project provides a Python package for managing forecast data in TimescaleDB, a PostgreSQL extension optimized for time-series data. The package includes:
+This project manages the database schema and migrations for the forecasting application.  It provides:
 
-- **SQLAlchemy Models**: Type-safe database models for forecast data
-- **Alembic Migrations**: Version-controlled database schema management
-- **Docker Environment**: Containerized TimescaleDB with Adminer for database administration
-- **Testing Framework**: Comprehensive test suite with migration testing
+- **Database Schema**: SQLAlchemy models defining the forecast data structure
+- **Alembic Migrations**: Version-controlled database schema changes
+- **Docker Environment**: Local TimescaleDB instance for development and testing
+- **Migration Testing**: Automated tests to ensure migrations work correctly
+
+This is primarily a database schema repository, not a Python package for import by other applications.
+
 
 ## Project Structure
 
 ```
 forecasting-db/
-├── forecasting_db/      # Python package
-│   └── models.py       # SQLAlchemy models
-├── alembic_migrations/  # Alembic database migrations
-│   ├── versions/        # Migration files
-│   ├── env.py           # Alembic environment configuration
+├── forecasting_db/      # SQLAlchemy models for schema definition
+│   └── models.py       # Database table models
+├── alembic_migrations/  # Database migration files
+│   ├── versions/        # Migration scripts
+│   ├── env.py           # Alembic environment setup
 │   └── script.py.mako   # Migration template
-├── tests/               # Tests
+├── tests/               # Migration and schema tests
 ├── alembic.ini          # Alembic configuration
-├── docker-compose.yml   # Docker services configuration
-├── requirements.txt     # Python dependencies
-└── setup.py            # Package setup configuration
+├── docker-compose.yml   # Local database setup
+└── requirements.txt     # Development dependencies
 ```
 
 ## Local Development Setup
@@ -144,22 +124,23 @@ alembic history
 
 ## Development Workflow
 
-### 1. Database Changes
+### 1. Schema Changes
 
-1. Make changes to your SQLAlchemy models
-2. Generate migration: `alembic revision --autogenerate -m "your changes"`
-3. Review the generated migration file
-4. Apply migration: `alembic upgrade head`
+1. Modify the SQLAlchemy models in `forecasting_db/models.py`
+2. Generate migration: `alembic revision --autogenerate -m "description of schema change"`
+3. Review the generated migration file in `alembic_migrations/versions/`
+4. Test the migration: `alembic upgrade head`
+5. Commit the migration file to version control
 
-### 2. Testing
+### 2. Testing Migrations
 
-To run tests:
+To test that migrations work correctly:
 
 ```bash
 python -m pytest tests/
 ```
 
-To run tests and also check coverage:
+To run tests with coverage:
 
 ```bash
 coverage run -m pytest tests/ && coverage report -m

@@ -46,17 +46,18 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: Check formatting with black
-      run: |
-        black . --check
+    - name: Install pre-commit
+      run: pip install pre-commit
 
-    - name: Lint with Flake8 (Black-compatible)
-      run: |
-        flake8 . --count --ignore=D203,D100,D103,D104,D101 --show-source --statistics --max-line-length=88
+    - name: Run pre-commit
+      run: pre-commit run --all-files --show-diff-on-failure
 
-    - name: Check imports with isort
+    - name: Run tests with coverage
       run: |
-        isort . --check-only
+        pip install coverage pytest
+        PYTHONPATH=${{ github.workspace }} coverage run -m pytest tests/
+        coverage report -m
+        coverage xml
 
     - name: Run tests with coverage (branch coverage)
       run: |
