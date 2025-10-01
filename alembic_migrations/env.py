@@ -1,5 +1,6 @@
 """Alembic env config file."""
 
+import os
 from logging.config import fileConfig
 
 from alembic import context
@@ -26,6 +27,10 @@ target_metadata = Base.metadata
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
+
+env_url = os.getenv("SQLALCHEMY_URL")
+if env_url:
+    config.set_main_option("sqlalchemy.url", env_url)
 
 
 def run_migrations_offline() -> None:  # pragma: no cover
