@@ -170,21 +170,20 @@ The RDS instance is not publicly accessible, so you need to go through the EC2 i
 
 1. Make sure Adminer is running on the EC2 instance
 
-- Run `docker ps`. If no container named adminer is running, start it: `docker run -d -p 8080:8080 --name adminer adminer`
+- Run `docker ps`.
+- If no container named adminer is running, start it: `docker run -d -p 8080:8080 --name adminer adminer`
 
-2. Forward Adminer to your local machine
+2. Forward Adminer to your local machine. This maps your local port 8080 to EC2’s 8080, where Adminer is running.
 
 ```bash
 ssh -i /path/to/your/key.pem -L 8080:localhost:8080 ec2-user@<EC2-PUBLIC-IP>
 ```
 
-This maps your local port 8080 to EC2’s 8080, where Adminer is running.
-
-3. Open Adminer in your browser
+3. Open Adminer in your browser:
 
 - Go to localhost:8080
 - Login with your RDS credentials
-    - Server: <RDS Endpoint>
+    - Server: RDS Endpoint
     - Username: postgres
     - Password:
     - Database: appdb
