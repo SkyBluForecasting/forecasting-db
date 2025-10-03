@@ -15,11 +15,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.10"
-
       - name: Install dependencies
         run: |
           python -m venv venv
@@ -27,13 +22,6 @@ jobs:
           pip install --upgrade pip
           pip install -r requirements.txt
           pip install -e .
-
-      - name: Debug SQLALCHEMY_URL parsing
-        env:
-          SQLALCHEMY_URL: ${{ secrets.SQLALCHEMY_URL }}
-        run: |
-          source venv/bin/activate
-          python3 .github/debug.py
 
       - name: Run Alembic migrations
         run: |
