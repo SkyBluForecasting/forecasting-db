@@ -22,22 +22,6 @@ This project manages the database schema and migrations for the forecasting appl
 This is primarily a database schema repository, not a Python package for import by other applications.
 
 
-## Project Structure
-
-```
-forecasting-db/
-├── forecasting_db/      # SQLAlchemy models for schema definition
-│   └── models.py       # Database table models
-├── alembic_migrations/  # Database migration files
-│   ├── versions/        # Migration scripts
-│   ├── env.py           # Alembic environment setup
-│   └── script.py.mako   # Migration template
-├── tests/               # Migration and schema tests
-├── alembic.ini          # Alembic configuration
-├── docker-compose.yml   # Local database setup
-└── requirements.txt     # Development dependencies
-```
-
 ## Local Development Setup
 
 ### 1. Clone and Setup Environment
@@ -170,3 +154,37 @@ pip install pre-commit
 pre-commit install
 pre-commit run --all-files
 ```
+
+## How to Connect to RDS Postgres
+
+These are the steps to connect to a staging or production version of the RDS database.
+The RDS instance is not publicly accessible, so you need to go through the EC2 instance in the same VPC.
+
+### Option 1: Use psql (cli)
+
+1. SSH into the forecasting-db EC2 instance: `ssh -i /path/to/your/key.pem ec2-user@<EC2-PUBLIC-IP>`
+
+2. Once on the EC2 instance, connect to RDS: `psql -h <RDS-ENDPOINT> -U postgres -d appdb -p 5432`
+
+### Option 2: Use Adminer (if you want a GUI)
+
+1. Make sure Adminer is running on the EC2 instance
+
+- Run `docker ps`. If no container named adminer is running, start it: `docker run -d -p 8080:8080 --name adminer adminer`
+
+2. Forward Adminer to your local machine
+
+```bash
+ssh -i /path/to/your/key.pem -L 8080:localhost:8080 ec2-user@<EC2-PUBLIC-IP>
+```
+
+This maps your local port 8080 to EC2’s 8080, where Adminer is running.
+
+3. Open Adminer in your browser
+
+- Go to localhost:8080
+- Login with your RDS credentials
+    - Server: <RDS Endpoint>
+    - Username: postgres
+    - Password:
+    - Database: appdb
