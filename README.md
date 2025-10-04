@@ -187,3 +187,12 @@ ssh -i /path/to/your/key.pem -L 8080:localhost:8080 ec2-user@<EC2-PUBLIC-IP>
     - Username: postgres
     - Password:
     - Database: appdb
+
+
+### Option 3: Use SSH tunnel from local machine
+
+1. Forward a local port to the EC2 instance, then connect to RDS through it. This makes localhost:5432 act as if its the RDS.E.g.,
+
+`ssh -i ../engine-key.pem -L 15432:<RDS_ENDPOINT>:5432 ec2-user@<EC2 IP> -N &`
+
+2. Then if you're running scripts, use `"host": "localhost"`

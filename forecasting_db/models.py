@@ -2,10 +2,8 @@ from sqlalchemy import (
     Column,
     DateTime,
     Float,
-    ForeignKeyConstraint,
     Index,
     String,
-    UniqueConstraint,
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import declarative_base
@@ -23,10 +21,7 @@ class Forecasts(Base):
     forecast_uuid = Column(UUID(as_uuid=True), primary_key=True, nullable=False)
     forecast_kw = Column(Float, nullable=False)
 
-    __table_args__ = (
-        UniqueConstraint("forecast_uuid"),
-        Index("ix_forecasts_forecast_uuid", "forecast_uuid"),
-    )
+    __table_args__ = (Index("ix_forecasts_forecast_uuid", "forecast_uuid"),)
 
 
 class ForecastRuns(Base):
@@ -40,11 +35,8 @@ class ForecastRuns(Base):
     end_time = Column(DateTime(timezone=True), nullable=False)
     frequency_min = Column(Float, nullable=False)
 
-    # FK to Forecasts
-    __table_args__ = (
-        ForeignKeyConstraint(["forecast_uuid"], ["forecasts.forecast_uuid"]),
-        Index("ix_forecast_runs_asset_uuid", "asset_uuid"),
-    )
+    # FK to forecasts only on forecast_uuid
+    __table_args__ = (Index("ix_forecast_runs_asset_uuid", "asset_uuid"),)
 
 
 class Constraints(Base):
