@@ -32,8 +32,7 @@ target_metadata = Base.metadata
 # ... etc.
 
 env_url = os.getenv("SQLALCHEMY_URL")
-if env_url:
-    config.set_main_option("sqlalchemy.url", env_url)
+config.set_main_option("sqlalchemy.url", env_url)
 
 
 def run_migrations_offline() -> None:  # pragma: no cover
