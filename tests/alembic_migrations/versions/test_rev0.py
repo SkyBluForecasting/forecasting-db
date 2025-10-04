@@ -58,8 +58,14 @@ def test_table_columns(alembic_migrate_to_revision, table):
     assert table["name"] in inspector.get_table_names()
     cols = {c["name"]: c for c in inspector.get_columns(table["name"])}
     for col_name, col_type in table["columns"].items():
-        assert col_name in cols
-        assert cols[col_name]["type"].__class__.__name__.upper() == col_type
+        assert col_name in cols, f"{col_name} missing in {table['name']}"
+        actual_type = cols[col_name]["type"].__class__.__name__.upper()
+        # Normalize differences like TIMESTAMP(timezone=True)
+        if "TIMESTAMP" in actual_type:
+            actual_type = "TIMESTAMP"
+        assert (
+            actual_type == col_type
+        ), f"{table['name']}.{col_name} expected {col_type}, got {actual_type}"
 
 
 @pytest.mark.parametrize("table", TABLES)

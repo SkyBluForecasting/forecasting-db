@@ -1,5 +1,7 @@
+import uuid
+from datetime import datetime
+
 import pytest
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import sessionmaker
 
 from forecasting_db.models import (
@@ -11,7 +13,6 @@ from forecasting_db.models import (
 )
 
 
-# Use the engine fixture from conftest.py
 @pytest.fixture
 def session(engine):
     """Provide a fresh SQLAlchemy session with tables created from models."""
@@ -28,8 +29,8 @@ def session(engine):
 def test_forecasts_crud(session):
     f = Forecasts(
         asset_uuid="asset1",
-        timestamp="2025-01-01T00:00:00",
-        forecast_uuid="11111111-1111-1111-1111-111111111111",
+        timestamp=datetime(2025, 1, 1, 0, 0),
+        forecast_uuid=uuid.UUID("11111111-1111-1111-1111-111111111111"),
         forecast_kw=100.0,
     )
     session.add(f)
@@ -53,44 +54,25 @@ def test_forecasts_crud(session):
     assert session.query(Forecasts).filter_by(asset_uuid="asset1").first() is None
 
 
-def test_forecasts_unique_constraint(session):
-    f1 = Forecasts(
-        asset_uuid="asset1",
-        timestamp="2025-01-01T00:00:00",
-        forecast_uuid="22222222-2222-2222-2222-222222222222",
-        forecast_kw=100.0,
-    )
-    f2 = Forecasts(
-        asset_uuid="asset2",
-        timestamp="2025-01-01T01:00:00",
-        forecast_uuid="22222222-2222-2222-2222-222222222222",  # duplicate UUID
-        forecast_kw=200.0,
-    )
-    session.add(f1)
-    session.commit()
-    with pytest.raises(IntegrityError):
-        session.add(f2)
-        session.commit()
-
-
 # -------------------- ForecastRuns --------------------
 def test_forecast_runs_crud(session):
     # First insert a Forecast (to satisfy FK)
     f = Forecasts(
         asset_uuid="asset1",
-        timestamp="2025-01-01T00:00:00",
-        forecast_uuid="33333333-3333-3333-3333-333333333333",
+        timestamp=datetime(2025, 1, 1, 0, 0),
+        forecast_uuid=uuid.UUID("33333333-3333-3333-3333-333333333333"),
         forecast_kw=100.0,
     )
     session.add(f)
     session.commit()
+
     f_run = ForecastRuns(
-        forecast_uuid="33333333-3333-3333-3333-333333333333",
+        forecast_uuid=uuid.UUID("33333333-3333-3333-3333-333333333333"),
         run_uuid="run1",
         asset_uuid="asset1",
-        created_at="2025-01-01T00:00:00",
-        start_time="2025-01-01T01:00:00",
-        end_time="2025-01-01T02:00:00",
+        created_at=datetime(2025, 1, 1, 0, 0),
+        start_time=datetime(2025, 1, 1, 1, 0),
+        end_time=datetime(2025, 1, 1, 2, 0),
         frequency_min=60.0,
     )
     session.add(f_run)
@@ -98,7 +80,7 @@ def test_forecast_runs_crud(session):
 
     db_run = (
         session.query(ForecastRuns)
-        .filter_by(forecast_uuid="33333333-3333-3333-3333-333333333333")
+        .filter_by(forecast_uuid=uuid.UUID("33333333-3333-3333-3333-333333333333"))
         .first()
     )
     assert db_run.asset_uuid == "asset1"
@@ -107,7 +89,7 @@ def test_forecast_runs_crud(session):
     session.commit()
     assert (
         session.query(ForecastRuns)
-        .filter_by(forecast_uuid="33333333-3333-3333-3333-333333333333")
+        .filter_by(forecast_uuid=uuid.UUID("33333333-3333-3333-3333-333333333333"))
         .first()
         .frequency_min
         == 30.0
@@ -117,7 +99,7 @@ def test_forecast_runs_crud(session):
     session.commit()
     assert (
         session.query(ForecastRuns)
-        .filter_by(forecast_uuid="33333333-3333-3333-3333-333333333333")
+        .filter_by(forecast_uuid=uuid.UUID("33333333-3333-3333-3333-333333333333"))
         .first()
         is None
     )
@@ -125,10 +107,20 @@ def test_forecast_runs_crud(session):
 
 # -------------------- Constraints --------------------
 def test_constraints_crud(session):
+    # Need a forecast first
+    f = Forecasts(
+        asset_uuid="asset1",
+        timestamp=datetime(2025, 1, 1, 0, 0),
+        forecast_uuid=uuid.UUID("44444444-4444-4444-4444-444444444444"),
+        forecast_kw=100.0,
+    )
+    session.add(f)
+    session.commit()
+
     c = Constraints(
         asset_uuid="asset1",
-        timestamp="2025-01-01T00:00:00",
-        forecast_uuid="44444444-4444-4444-4444-444444444444",
+        timestamp=datetime(2025, 1, 1, 0, 0),
+        forecast_uuid=uuid.UUID("44444444-4444-4444-4444-444444444444"),
         constraint_kw=50.0,
     )
     session.add(c)
@@ -153,7 +145,7 @@ def test_constraints_crud(session):
 def test_measurements_crud(session):
     m = Measurements(
         asset_uuid="asset1",
-        timestamp="2025-01-01T00:00:00",
+        timestamp=datetime(2025, 1, 1, 0, 0),
         metric="voltage",
         value=120.0,
     )

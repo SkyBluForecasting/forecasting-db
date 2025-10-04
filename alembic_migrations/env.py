@@ -4,9 +4,12 @@ import os
 from logging.config import fileConfig
 
 from alembic import context
+from dotenv import load_dotenv
 from sqlalchemy import engine_from_config, pool
 
 from forecasting_db.models import Base
+
+load_dotenv()  # loads .env file
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -28,9 +31,11 @@ target_metadata = Base.metadata
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
 
-env_url = os.getenv("SQLALCHEMY_URL")
-if env_url:
-    config.set_main_option("sqlalchemy.url", env_url)
+# Set the SQLAlchemy URL, using environment variable if present
+config.set_main_option(
+    "sqlalchemy.url",
+    os.getenv("SQLALCHEMY_URL") or config.get_main_option("sqlalchemy.url"),
+)
 
 
 def run_migrations_offline() -> None:  # pragma: no cover
