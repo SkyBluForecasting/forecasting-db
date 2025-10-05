@@ -53,7 +53,9 @@ jobs:
           GH_PAT: ${{ secrets.GH_PAT }}
         run: |
           python -m twine upload \
-            --repository-url https://mfavit:$GH_PAT@upload.pypi.github.com/organizations/SkyBluForecasting/packages/python/ \
+            --repository-url https://upload.pypi.github.com/organizations/SkyBluForecasting/packages/python/ \
+            -u mfavit \
+            -p $GH_PAT \
             dist/*
 
       - name: Create GitHub release
