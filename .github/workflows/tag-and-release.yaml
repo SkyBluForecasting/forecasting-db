@@ -50,13 +50,18 @@ jobs:
 
       - name: Login to AWS CodeArtifact
         run: |
-          export $(cat ${{ secrets.ENV_FILE_STAGING }} | xargs)
+          echo "${{ secrets.ENV_FILE_STAGING }}" > .env
+          set -a
+          source .env
+          set +a
+
           export CODEARTIFACT_AUTH_TOKEN=$(aws codeartifact get-authorization-token \
             --domain skyblu \
             --domain-owner 591082451778 \
             --region $AWS_REGION \
             --query authorizationToken \
             --output text)
+
           echo "Logged in to CodeArtifact"
 
       - name: Publish to AWS CodeArtifact
@@ -66,16 +71,6 @@ jobs:
             --repository-url https://skyblu-591082451778.d.codeartifact.us-east-2.amazonaws.com/pypi/forecasting-db/ \
             -u aws \
             -p $CODEARTIFACT_AUTH_TOKEN \
-            dist/*
-
-      - name: Publish to GitHub Packages
-        env:
-          GH_PAT: ${{ secrets.GH_PAT }}
-        run: |
-          python -m twine upload \
-            --repository-url https://upload.pkg.github.com/SkyBluForecasting/forecasting-db/ \
-            -u mfavit \
-            -p $GH_PAT \
             dist/*
 
       - name: Create GitHub release
