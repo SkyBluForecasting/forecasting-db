@@ -14,12 +14,13 @@
 
 This project manages the database schema and migrations for the forecasting application.  It provides:
 
+- **Python Package**: An installable package via PyPI/GitHub Packages to access SQLAlchemy models and database utilities directly from other applications.
 - **Database Schema**: SQLAlchemy models defining the forecast data structure
 - **Alembic Migrations**: Version-controlled database schema changes
 - **Docker Environment**: Local TimescaleDB instance for development and testing
 - **Migration Testing**: Automated tests to ensure migrations work correctly
 
-This is primarily a database schema repository, not a Python package for import by other applications.
+This repository serves both as a database schema/migrations manager and a shared Python package for other parts of the forecasting application.
 
 
 ## Local Development Setup
@@ -48,7 +49,7 @@ pip install -r requirements.txt
 pip install -e .
 ```
 
-### 4. Create an env file
+### 4. Create an env file to specify database URL to test with.
 
 ```bash
 echo "SQLALCHEMY_URL=postgresql+psycopg2://postgres:localpass@localhost:5432/appdb" > .env
