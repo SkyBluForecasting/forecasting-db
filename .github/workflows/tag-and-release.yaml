@@ -42,11 +42,6 @@ jobs:
           git tag $TAG || echo "Tag already exists"
           git push origin $TAG || echo "Tag already exists"
 
-      - name: Load AWS environment variables
-        run: |
-          echo "${{ secrets.ENV_FILE_STAGING }}" > .env
-          export $(grep -v '^#' .env | xargs)
-
       - name: Build Python package
         run: |
           python -m pip install --upgrade pip setuptools wheel toml build twine
@@ -55,20 +50,22 @@ jobs:
 
       - name: Login to AWS CodeArtifact
         run: |
+          export $(cat ${{ secrets.ENV_FILE_STAGING }} | xargs)
           export CODEARTIFACT_AUTH_TOKEN=$(aws codeartifact get-authorization-token \
             --domain skyblu \
             --domain-owner 591082451778 \
             --region $AWS_REGION \
-            --query authorizationToken --output text)
+            --query authorizationToken \
+            --output text)
           echo "Logged in to CodeArtifact"
 
       - name: Publish to AWS CodeArtifact
-        env:
-          TWINE_USERNAME: aws
-          TWINE_PASSWORD: ${{ env.CODEARTIFACT_AUTH_TOKEN }}
         run: |
+          python -m pip install --upgrade twine
           python -m twine upload \
-            --repository-url https://skyblu-591082451778.d.codeartifact.$AWS_REGION.amazonaws.com/pypi/forecasting-db/ \
+            --repository-url https://skyblu-591082451778.d.codeartifact.us-east-2.amazonaws.com/pypi/forecasting-db/ \
+            -u aws \
+            -p $CODEARTIFACT_AUTH_TOKEN \
             dist/*
 
       - name: Publish to GitHub Packages
