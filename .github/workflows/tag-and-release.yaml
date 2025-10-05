@@ -1,4 +1,4 @@
-name: Tag and Release
+name: Tag, Build & Release
 
 on:
   workflow_dispatch:
@@ -13,12 +13,13 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write  # allow pushing tags/releases
+      packages: write  # allow publishing to GitHub Packages
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # needed for tagging
+          fetch-depth: 0
 
       - name: Configure git
         run: |
@@ -28,19 +29,34 @@ jobs:
       - name: Update pyproject.toml version
         run: |
           TAG=${{ github.event.inputs.tag }}
-          # Remove leading "v" if your tag is like "v1.2.3"
-          VERSION=${TAG#v}
+          VERSION=${TAG#v}   # strip leading 'v'
           echo "Updating pyproject.toml version to $VERSION"
           sed -i "s/^version = .*/version = \"$VERSION\"/" pyproject.toml
           git add pyproject.toml
-          git commit -m "Bump version to $VERSION"
-          git push origin HEAD
+          git commit -m "Bump version to $VERSION" || echo "No changes to commit"
+          git push origin HEAD || echo "Already up to date"
 
       - name: Create and push tag
         run: |
           TAG=${{ github.event.inputs.tag }}
           git tag $TAG
-          git push origin $TAG
+          git push origin $TAG || echo "Tag already exists"
+
+      - name: Build Python package
+        run: |
+          python -m pip install --upgrade build twine
+          # Clean previous builds
+          rm -rf dist
+          python -m build
+
+      - name: Publish to GitHub Packages
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
+        run: |
+          python -m twine upload \
+            --repository-url https://pypi.pkg.github.com/mfavit \
+            dist/* \
+            -u mfavit -p $GH_PAT
 
       - name: Create GitHub release
         run: |
