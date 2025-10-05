@@ -49,20 +49,21 @@ jobs:
           python -m build
 
       - name: Login to AWS CodeArtifact
+        id: login
         run: |
           echo "${{ secrets.ENV_FILE_STAGING }}" > .env
           set -a
           source .env
           set +a
 
-          export CODEARTIFACT_AUTH_TOKEN=$(aws codeartifact get-authorization-token \
+          TOKEN=$(aws codeartifact get-authorization-token \
             --domain skyblu \
             --domain-owner 591082451778 \
             --region $AWS_REGION \
             --query authorizationToken \
             --output text)
 
-          echo "Logged in to CodeArtifact"
+          echo "CODEARTIFACT_AUTH_TOKEN=$TOKEN" >> $GITHUB_ENV
 
       - name: Publish to AWS CodeArtifact
         run: |
