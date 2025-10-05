@@ -7,7 +7,7 @@ dependencies = [
 ]
 
 [build-system]
-requires = ["setuptools>=61.0"]
+requires = ["setuptools>=61.0", "wheel", "toml"]
 build-backend = "setuptools.build_meta"
 
 [tool.isort]
