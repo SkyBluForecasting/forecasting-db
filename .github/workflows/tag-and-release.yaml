@@ -54,7 +54,7 @@ jobs:
           GH_PAT: ${{ secrets.GH_PAT }}
         run: |
           python -m twine upload \
-            --repository-url https://mfavit:$GH_PAT@pypi.pkg.github.com/mfavit \
+            --repository-url https://mfavit:$GH_PAT@pypi.pkg.github.com/mfavit/ \
             dist/*
 
       - name: Create GitHub release
