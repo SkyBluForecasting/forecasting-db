@@ -1,6 +1,6 @@
 [project]
 name = "forecasting-db"
-version = "1.0.3alpha6"
+version = "1.0.3alpha7"
 dependencies = [
   "sqlalchemy>=2.0",
   "alembic>=1.13",
