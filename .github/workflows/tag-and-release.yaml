@@ -12,8 +12,8 @@ jobs:
   release:
     runs-on: ubuntu-latest
     permissions:
-      contents: write  # allow pushing tags/releases
-      packages: write  # allow publishing to GitHub Packages
+      contents: write   # allow pushing tags/releases
+      packages: write   # allow publishing to GitHub Packages
 
     steps:
       - name: Checkout
@@ -39,24 +39,40 @@ jobs:
       - name: Create and push tag
         run: |
           TAG=${{ github.event.inputs.tag }}
-          git tag $TAG
+          git tag $TAG || echo "Tag already exists"
           git push origin $TAG || echo "Tag already exists"
 
       - name: Build Python package
         run: |
-          python -m pip install --upgrade build twine
-          # Clean previous builds
+          python -m pip install --upgrade pip setuptools wheel toml build twine
           rm -rf dist
           python -m build
 
-      - name: Publish to GitHub Packages
-        env:
-          GH_PAT: ${{ secrets.GH_PAT }}
+      - name: Login to AWS CodeArtifact
+        id: login
         run: |
+          echo "${{ secrets.ENV_FILE_STAGING }}" > .env
+          set -a
+          source .env
+          set +a
+
+          TOKEN=$(aws codeartifact get-authorization-token \
+            --domain skyblu \
+            --domain-owner 591082451778 \
+            --region $AWS_REGION \
+            --query authorizationToken \
+            --output text)
+
+          echo "CODEARTIFACT_AUTH_TOKEN=$TOKEN" >> $GITHUB_ENV
+
+      - name: Publish to AWS CodeArtifact
+        run: |
+          python -m pip install --upgrade twine
           python -m twine upload \
-            --repository-url https://pypi.pkg.github.com/mfavit \
-            dist/* \
-            -u mfavit -p $GH_PAT
+            --repository-url https://skyblu-591082451778.d.codeartifact.us-east-2.amazonaws.com/pypi/forecasting-db/ \
+            -u aws \
+            -p $CODEARTIFACT_AUTH_TOKEN \
+            dist/*
 
       - name: Create GitHub release
         run: |
