@@ -39,13 +39,12 @@ jobs:
       - name: Create and push tag
         run: |
           TAG=${{ github.event.inputs.tag }}
-          git tag $TAG
+          git tag $TAG || echo "Tag already exists"
           git push origin $TAG || echo "Tag already exists"
 
       - name: Build Python package
         run: |
           python -m pip install --upgrade build twine
-          # Clean previous builds
           rm -rf dist
           python -m build
 
@@ -54,7 +53,7 @@ jobs:
           GH_PAT: ${{ secrets.GH_PAT }}
         run: |
           python -m twine upload \
-            --repository-url https://mfavit:$GH_PAT@pypi.pkg.github.com/SkyBluForecasting/ \
+            --repository-url https://mfavit:$GH_PAT@upload.pypi.github.com/organizations/SkyBluForecasting/packages/python/ \
             dist/*
 
       - name: Create GitHub release
