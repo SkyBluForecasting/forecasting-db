@@ -12,25 +12,39 @@ jobs:
   release:
     runs-on: ubuntu-latest
     permissions:
-      contents: write  # <-- allow pushing tags/releases
+      contents: write  # allow pushing tags/releases
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 0  # needed for tagging
 
       - name: Configure git
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
 
+      - name: Update pyproject.toml version
+        run: |
+          TAG=${{ github.event.inputs.tag }}
+          # Remove leading "v" if your tag is like "v1.2.3"
+          VERSION=${TAG#v}
+          echo "Updating pyproject.toml version to $VERSION"
+          sed -i "s/^version = .*/version = \"$VERSION\"/" pyproject.toml
+          git add pyproject.toml
+          git commit -m "Bump version to $VERSION"
+          git push origin HEAD
+
       - name: Create and push tag
         run: |
-          git tag ${{ github.event.inputs.tag }}
-          git push origin ${{ github.event.inputs.tag }}
+          TAG=${{ github.event.inputs.tag }}
+          git tag $TAG
+          git push origin $TAG
 
       - name: Create GitHub release
-        run: gh release create "${{ github.event.inputs.tag }}" --generate-notes
+        run: |
+          TAG=${{ github.event.inputs.tag }}
+          gh release create "$TAG" --generate-notes
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
