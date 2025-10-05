@@ -53,7 +53,7 @@ jobs:
           GH_PAT: ${{ secrets.GH_PAT }}
         run: |
           python -m twine upload \
-            --repository-url https://upload.pkg.github.com/SkyBluForecasting/ \
+            --repository-url https://upload.pkg.github.com/SkyBluForecasting/forecasting-db/ \
             -u mfavit \
             -p $GH_PAT \
             dist/*
