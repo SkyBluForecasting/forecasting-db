@@ -1,9 +1,8 @@
 import pytest
 from alembic import command
 from alembic.config import Config
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 
-# Use a dedicated test database, e.g. "postgres://user:pass@localhost:5432/test_db"
 TEST_DB_URL = "postgresql://postgres:localpass@localhost:5432/appdb"
 
 
@@ -16,14 +15,6 @@ def engine():
 
 
 @pytest.fixture(scope="session")
-def connection(engine):
-    """Provide a connection and rollback after each test session."""
-    connection = engine.connect()
-    yield connection
-    connection.close()
-
-
-@pytest.fixture(scope="session")
 def alembic_cfg():
     """Configure Alembic for the test database."""
     cfg = Config("alembic.ini")
@@ -31,21 +22,25 @@ def alembic_cfg():
     return cfg
 
 
-@pytest.fixture
-def alembic_migrate_to_revision(alembic_cfg, connection, request):
+@pytest.fixture(scope="function")
+def upgraded_engine(alembic_cfg, engine):
     """
-    Run Alembic migrations up to a specific revision for a test.
+    Provide an engine with Alembic upgraded to rev0 for the duration of the test.
 
-    Usage:
-        @pytest.mark.parametrize("revision", ["rev0", "rev1"])
-        def test_something(alembic_migrate_to_revision):
-            ...
+    Uses the same connection for Alembic migrations and schema setup.
     """
-    revision = getattr(request, "param", "head")  # default to head if not specified
-    trans = connection.begin()
-    alembic_cfg.attributes["connection"] = connection
-    command.upgrade(alembic_cfg, revision)
+    # Create schemas if missing
+    with engine.begin() as conn:
+        conn.execute(text("CREATE SCHEMA IF NOT EXISTS openstef;"))
+        conn.execute(text("CREATE SCHEMA IF NOT EXISTS product;"))
 
-    yield connection
+    # Upgrade Alembic using the same connection
+    conn = engine.connect()
+    alembic_cfg.attributes["connection"] = conn
+    command.upgrade(alembic_cfg, "rev0")
 
-    trans.rollback()
+    yield engine
+
+    # Downgrade back to base after test
+    command.downgrade(alembic_cfg, "base")
+    conn.close()

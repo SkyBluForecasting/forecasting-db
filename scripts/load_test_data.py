@@ -4,15 +4,22 @@ import sys
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from forecasting_db.models import Constraints, ForecastRuns, Forecasts, Measurements
+from forecasting_db.models import (
+    Asset,
+    Constraint,
+    Forecast,
+    ForecastRun,
+    Measurement,
+    PredictionJob,
+)
 
 # Config
 DB_CONFIG = {
     "host": "localhost",
-    "port": 15432,
+    "port": 5432,
     "dbname": "appdb",
     "user": "postgres",
-    "password": "skyblu55!",
+    "password": "localpass",
 }
 
 DATABASE_URL = f"postgresql://{DB_CONFIG['user']}:{DB_CONFIG['password']}@{DB_CONFIG['host']}:{DB_CONFIG['port']}/{DB_CONFIG['dbname']}"
@@ -21,10 +28,12 @@ engine = create_engine(DATABASE_URL)
 Session = sessionmaker(bind=engine)
 
 MODEL_MAP = {
-    "Forecasts": Forecasts,
-    "ForecastRuns": ForecastRuns,
-    "Constraints": Constraints,
-    "Measurements": Measurements,
+    "Assets": Asset,
+    "Forecast": Forecast,
+    "PredictionJob": PredictionJob,
+    "ForecastRun": ForecastRun,
+    "Constraint": Constraint,
+    "Measurement": Measurement,
 }
 
 
@@ -32,7 +41,11 @@ def load_csv_to_test_table(csv_file, model, batch_size=500):
     # Step 1: load CSV
     with open(csv_file, "r") as f:
         reader = csv.DictReader(f)
-        rows = [model(**row) for row in reader]
+        rows = []
+        for row in reader:
+            # Convert empty strings to None
+            clean_row = {k: (v if v != "" else None) for k, v in row.items()}
+            rows.append(model(**clean_row))
 
     session = Session()
     try:
