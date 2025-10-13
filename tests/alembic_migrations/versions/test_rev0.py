@@ -6,7 +6,7 @@ from sqlalchemy import inspect
 TABLES = [
     {"name": "assets", "schema": "openstef"},
     {"name": "prediction_job", "schema": "openstef"},
-    {"name": "forecast_runs", "schema": "openstef"},  # added
+    {"name": "forecast_runs", "schema": "openstef"},
     {"name": "forecast", "schema": "openstef"},
     {"name": "measurement", "schema": "openstef"},
     {"name": "constraints", "schema": "product"},
@@ -41,6 +41,27 @@ def test_table_indexes(upgraded_engine, table):
     assert isinstance(indexes, list)
 
 
+# ---------------- Specific column/constraint tests ----------------
+def test_measurement_unique_constraint(upgraded_engine):
+    """Verify measurement table has unique constraint on (asset_uuid, timestamp, metric)."""
+    inspector = inspect(upgraded_engine)
+    constraints = inspector.get_unique_constraints("measurement", schema="openstef")
+    uq_names = [c["name"] for c in constraints]
+    assert "uq_measurement_asset_ts_metric" in uq_names
+
+
+def test_measurement_columns_not_nullable(upgraded_engine):
+    """Verify important measurement columns are non-nullable."""
+    inspector = inspect(upgraded_engine)
+    columns = {
+        c["name"]: c for c in inspector.get_columns("measurement", schema="openstef")
+    }
+    for col in ["asset_uuid", "timestamp", "metric", "value"]:
+        assert col in columns
+        assert not columns[col]["nullable"]
+
+
+# ---------------- Upgrade/downgrade tests ----------------
 @pytest.mark.parametrize("table", TABLES)
 def test_downgrade_removes_tables(alembic_cfg, upgraded_engine, table):
     """Verify that downgrade removes the tables."""

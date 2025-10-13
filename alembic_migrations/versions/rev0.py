@@ -109,6 +109,9 @@ def upgrade():
         sa.Column("timestamp", sa.DateTime(timezone=True), nullable=False),
         sa.Column("metric", sa.String(50), nullable=False),
         sa.Column("value", sa.Float, nullable=False),
+        sa.UniqueConstraint(
+            "asset_uuid", "timestamp", "metric", name="uq_measurement_asset_ts_metric"
+        ),
         schema="openstef",
     )
     op.create_index(
