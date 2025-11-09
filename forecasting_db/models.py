@@ -139,3 +139,27 @@ class Constraint(Base):
     constraint_kw = Column(Float, nullable=False)
 
     forecast_run = relationship("ForecastRun", backref="constraints")
+
+
+class ForecastError(Base):
+    __tablename__ = "forecast_errors"
+    __table_args__ = (
+        sa.Index("ix_forecast_errors_run_ts", "forecast_run_id", "timestamp"),
+        sa.UniqueConstraint(
+            "forecast_run_id",
+            "timestamp",
+            name="uq_forecast_errors_run_ts",
+        ),
+        {"schema": "product"},
+    )
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    forecast_run_id = Column(
+        String(50),
+        ForeignKey("openstef.forecast_runs.forecast_run_id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    timestamp = Column(DateTime(timezone=True), nullable=False)
+    error = Column(Float, nullable=False)
+
+    forecast_run = relationship("ForecastRun", backref="forecast_errors")
