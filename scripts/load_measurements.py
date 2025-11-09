@@ -10,8 +10,8 @@ HISTORICAL_BUCKET = "forecasting-forecasts"
 HISTORICAL_PREFIX = "historical/"
 LOCAL_TZ = "America/New_York"
 MEASUREMENTS_API = "http://localhost:8000/assets/{asset_uuid}/measurements/"
-API_TOKEN = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IkRQVHIzWWZwUHBwNkNsbFoxc1dwcSJ9.eyJpc3MiOiJodHRwczovL2Rldi16azRqMWxiN2RucndjMHhnLnVzLmF1dGgwLmNvbS8iLCJzdWIiOiJQdDNpOTBhVG9ya0tZdzNwTjdJVjZ6U1phRHpab1Q1RUBjbGllbnRzIiwiYXVkIjoiaHR0cHM6Ly9mb3JlY2FzdGluZy1hcGkuZm9yZWNhc3RpbmciLCJpYXQiOjE3NjA3OTUzNDUsImV4cCI6MTc2MDg4MTc0NSwic2NvcGUiOiJyZWFkOmZvcmVjYXN0IiwiZ3R5IjoiY2xpZW50LWNyZWRlbnRpYWxzIiwiYXpwIjoiUHQzaTkwYVRvcmtLWXczcE43SVY2elNaYUR6Wm9UNUUifQ.MocW4mccWL6PBtAS_swcN0RE0NAjKS3rUIxvCxIyL66YZxGnnoaAz2gGEO7XZvDGNFC-WrI9AaUL0G3HGqUSHL2BC0PBAaFKRKxg2oSTd2uSmXUJpNX-nHJA3gnoNUphU7dFrbkQYDnk8A5e3Y_O7aIN5Z4jjah4eNr_IaioNJXF8mJ9rsyAvAje6I_lYNjB6_2tEETVdK-LSyeu2tW8qVLxb4Sc28_TE9xpjdghyDpywEXyRIWj0yggBxhF4NDOfd93Z4IVg6k3hldH5XbLpmUjOe7QIksrmx1QAp0tjKS6NORrpfi0ueWnwP7SheqQvEd1_AKvrhQ7V1auKld_FA"
-
+# MEASUREMENTS_API = "http://18.220.250.165/assets/{asset_uuid}/measurements/"
+API_TOKEN = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IkRQVHIzWWZwUHBwNkNsbFoxc1dwcSJ9.eyJpc3MiOiJodHRwczovL2Rldi16azRqMWxiN2RucndjMHhnLnVzLmF1dGgwLmNvbS8iLCJzdWIiOiJQdDNpOTBhVG9ya0tZdzNwTjdJVjZ6U1phRHpab1Q1RUBjbGllbnRzIiwiYXVkIjoiaHR0cHM6Ly9mb3JlY2FzdGluZy1hcGkuZm9yZWNhc3RpbmciLCJpYXQiOjE3NjI2MTgzNTgsImV4cCI6MTc2MjcwNDc1OCwic2NvcGUiOiJyZWFkOmZvcmVjYXN0IiwiZ3R5IjoiY2xpZW50LWNyZWRlbnRpYWxzIiwiYXpwIjoiUHQzaTkwYVRvcmtLWXczcE43SVY2elNaYUR6Wm9UNUUifQ.SPy2eGGperA6f-WDeT8v1vl9YS7Jvr56F-wxu-MyCuHTuU-unGP9ja9mGEbCWmB-oFJehYiRDoG6TraK0GbpOM51V6fewGCn7jD-c9rS22fHnCLYVe4CoWhqQXZL_KfZuMY2c5yiFvqx_hMYrMbeZ-TxvSrkpRPcScNa75jU_OOP3SfeN9OzWTKaPWN5oR7bsug-qbe1WLiOE3ytYzOs8Gjhj7d9I_qQpvUIsbJkrzFkzpVwVRFEN7TXyuC3NWIfNIfe7KLP4G3Itg_gIe20PAb9b0ZW2C56tiLmbDkd88MZNBXXRMaoiILwhATRpe_SSbaoE9B_2dw2EiFWxod_pA"
 s3 = boto3.client("s3")
 
 
@@ -73,8 +73,8 @@ def fetch_existing_measurements(
 def identify_new_measurements(df: pd.DataFrame, existing: dict):
     """Return only measurements missing in DB, respecting look-ahead rules."""
     # Existing set keyed by (timestamp_iso, metric)
-    existing_set = {
-        (row["timestamp"], metric)
+    existing_dict = {
+        (row["timestamp"], metric): row["values"].get(metric)
         for row in existing["values"]
         for metric in row["values"]
     }
@@ -83,11 +83,17 @@ def identify_new_measurements(df: pd.DataFrame, existing: dict):
     for _, row in df.iterrows():
         ts = row["datetime"].isoformat().replace("+00:00", "Z")
         for metric in ["load", "temp"]:
-            if not pd.isna(row[metric]):
-                if (ts, metric) not in existing_set:
-                    new_measurements.append(
-                        {"metric": metric, "timestamp": ts, "value": row[metric]}
-                    )
+            value = row[metric]
+            if pd.isna(value):
+                continue
+
+            # Track if missing in DB or if DB value is NaN
+            if (ts, metric) not in existing_dict or pd.isna(
+                existing_dict[(ts, metric)]
+            ):
+                new_measurements.append(
+                    {"metric": metric, "timestamp": ts, "value": value}
+                )
 
     return new_measurements
 
@@ -115,7 +121,7 @@ def upload_measurements(asset_id: str, measurements: list, chunk_size: int = 500
 
 def process_asset_csv(key: str):
     asset_id = key.split("/")[-1].split("_")[0]
-    if asset_id == "M4C":
+    if asset_id == "M9A":
         df = load_and_clean_csv(key)
         if df.empty:
             print(f"No measurements to process for {asset_id}.")

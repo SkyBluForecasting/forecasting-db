@@ -69,7 +69,7 @@ This starts:
 
 To access the database with psql, run:
 
-`docker compose exec timescaledb psql -U postgres`
+`docker compose exec timescaledb psql -U postgres -d appdb`
 
 **TimescaleDB Connection:**
 - Host: `localhost`

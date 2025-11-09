@@ -13,14 +13,21 @@ from forecasting_db.models import (
     PredictionJob,
 )
 
+# DB_CONFIG = {
+#     "host": "localhost",
+#     "port": 15432,
+#     "dbname": "appdb",
+#     "user": "postgres",
+#     "password": "skyblu55!",
+# }
+
 DB_CONFIG = {
     "host": "localhost",
-    "port": 15432,
+    "port": 5432,
     "dbname": "appdb",
     "user": "postgres",
-    "password": "skyblu55!",
+    "password": "localpass",
 }
-
 
 DATABASE_URL = f"postgresql://{DB_CONFIG['user']}:{DB_CONFIG['password']}@{DB_CONFIG['host']}:{DB_CONFIG['port']}/{DB_CONFIG['dbname']}"
 

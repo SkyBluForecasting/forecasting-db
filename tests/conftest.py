@@ -2,6 +2,9 @@ import pytest
 from alembic import command
 from alembic.config import Config
 from sqlalchemy import create_engine, text
+from sqlalchemy.orm import sessionmaker
+
+from forecasting_db.models import Base
 
 TEST_DB_URL = "postgresql://postgres:localpass@localhost:5432/appdb"
 
@@ -44,3 +47,19 @@ def upgraded_engine(alembic_cfg, engine):
     # Downgrade back to base after test
     command.downgrade(alembic_cfg, "base")
     conn.close()
+
+
+@pytest.fixture
+def session(engine):
+    """Provide a fresh SQLAlchemy session with tables created from models."""
+    with engine.begin() as conn:
+        conn.execute(text("CREATE SCHEMA IF NOT EXISTS openstef"))
+        conn.execute(text("CREATE SCHEMA IF NOT EXISTS product"))
+
+    Base.metadata.create_all(engine)
+    Session = sessionmaker(bind=engine)
+    s = Session()
+    yield s
+    s.rollback()
+    s.close()
+    Base.metadata.drop_all(engine)
