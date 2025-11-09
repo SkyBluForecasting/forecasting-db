@@ -14,7 +14,7 @@
 
 This project manages the database schema and migrations for the forecasting application.  It provides:
 
-- **Python Package**: An installable package via PyPI/GitHub Packages to access SQLAlchemy models and database utilities directly from other applications.
+- **Python Package**: An installable package via AWS Code Artifact to access SQLAlchemy models and database utilities directly from other applications.
 - **Database Schema**: SQLAlchemy models defining the forecast data structure
 - **Alembic Migrations**: Version-controlled database schema changes
 - **Docker Environment**: Local TimescaleDB instance for development and testing
