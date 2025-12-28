@@ -1,10 +1,15 @@
 import uuid
+from enum import Enum
 
 import sqlalchemy as sa
 from sqlalchemy import (
     JSON,
+    Boolean,
     Column,
     DateTime,
+)
+from sqlalchemy import Enum as SqlEnum
+from sqlalchemy import (
     Float,
     ForeignKey,
     Integer,
@@ -21,21 +26,35 @@ Base = declarative_base()
 #
 
 
+class AssetType(str, Enum):
+    system = "system"
+    distribution_substation = "distribution_substation"
+
+
 class Asset(Base):
     __tablename__ = "assets"
     __table_args__ = {"schema": "openstef"}
 
     asset_uuid = Column(String(50), primary_key=True)  # e.g., "K0A"
     name = Column(String(100), nullable=False)
-    asset_type = Column(String(50), nullable=False)  # "substation", "pv", etc.
+
+    asset_type = Column(SqlEnum(AssetType, name="asset_type_enum"), nullable=False)
+
     capacity_kw = Column(Float, nullable=True)
+
+    measured = Column(Boolean, nullable=False, default=False)
+
     parent_uuid = Column(
         String(50), ForeignKey("openstef.assets.asset_uuid"), nullable=True
     )
 
     children = relationship(
-        "Asset", backref=backref("parent", remote_side=[asset_uuid])
+        "Asset",
+        backref=backref("parent", remote_side=[asset_uuid]),
+        cascade="all, delete-orphan",
     )
+
+    depth = Column(Integer, nullable=False)
 
 
 class PredictionJob(Base):
