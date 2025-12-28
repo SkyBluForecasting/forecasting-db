@@ -8,7 +8,12 @@ from forecasting_db.models import (
 
 
 def test_forecast_run_crud(session):
-    asset = Asset(asset_uuid="asset1", asset_type="solar", name="Asset 1")
+    asset = Asset(
+        asset_uuid="asset1",
+        asset_type="distribution_substation",
+        name="Asset 1",
+        depth=0,
+    )
     session.add(asset)
     session.commit()
 
