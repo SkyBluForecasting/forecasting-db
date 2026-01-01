@@ -35,8 +35,8 @@ class Asset(Base):
     __tablename__ = "assets"
     __table_args__ = {"schema": "openstef"}
 
-    asset_uuid = Column(String(50), primary_key=True)  # e.g., "K0A"
-    name = Column(String(100), nullable=False)
+    asset_uuid = Column(String, primary_key=True)
+    name = Column(String, nullable=False)
 
     asset_type = Column(SqlEnum(AssetType, name="asset_type_enum"), nullable=False)
 
@@ -45,7 +45,7 @@ class Asset(Base):
     measured = Column(Boolean, nullable=False, default=False)
 
     parent_uuid = Column(
-        String(50), ForeignKey("openstef.assets.asset_uuid"), nullable=True
+        String, ForeignKey("openstef.assets.asset_uuid"), nullable=True
     )
 
     children = relationship(
@@ -63,7 +63,7 @@ class PredictionJob(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     asset_uuid = Column(
-        String(50), ForeignKey("openstef.assets.asset_uuid"), nullable=False
+        String, ForeignKey("openstef.assets.asset_uuid"), nullable=False
     )
     model = Column(String(100))
     horizon_minutes = Column(Integer)
@@ -79,7 +79,7 @@ class ForecastRun(Base):
     __tablename__ = "forecast_runs"
     __table_args__ = {"schema": "openstef"}
 
-    forecast_run_id = Column(String(50), primary_key=True)  # unique per run
+    forecast_run_id = Column(String, primary_key=True)  # unique per run
     prediction_job_id = Column(
         Integer,
         ForeignKey("openstef.prediction_job.id", ondelete="CASCADE"),
@@ -87,7 +87,7 @@ class ForecastRun(Base):
     )
     model_run_id = Column(String(100))  # e.g., MLflow run_id
     asset_uuid = Column(
-        String(50), ForeignKey("openstef.assets.asset_uuid"), nullable=False
+        String, ForeignKey("openstef.assets.asset_uuid"), nullable=False
     )
     created_at = Column(DateTime(timezone=True), server_default=sa.func.now())
     start_time = Column(DateTime(timezone=True))
@@ -104,7 +104,7 @@ class Forecast(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     forecast_run_id = Column(
-        String(50),
+        String,
         ForeignKey("openstef.forecast_runs.forecast_run_id", ondelete="CASCADE"),
         nullable=False,
     )
@@ -122,7 +122,7 @@ class Measurement(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     asset_uuid = Column(
-        String(50),
+        String,
         ForeignKey("openstef.assets.asset_uuid", ondelete="CASCADE"),
         nullable=False,
     )
@@ -150,10 +150,10 @@ class Constraint(Base):
     )
 
     constraint_uuid = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    asset_uuid = Column(String(50), nullable=False)
+    asset_uuid = Column(String, nullable=False)
     timestamp = Column(DateTime(timezone=True), nullable=False)
     forecast_run_id = Column(
-        String(50), ForeignKey("openstef.forecast_runs.forecast_run_id"), nullable=False
+        String, ForeignKey("openstef.forecast_runs.forecast_run_id"), nullable=False
     )
     constraint_kw = Column(Float, nullable=False)
 
@@ -174,7 +174,7 @@ class ForecastError(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     forecast_run_id = Column(
-        String(50),
+        String,
         ForeignKey("openstef.forecast_runs.forecast_run_id", ondelete="CASCADE"),
         nullable=False,
     )
