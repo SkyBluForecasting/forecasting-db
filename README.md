@@ -71,14 +71,8 @@ To access the database with psql, run:
 
 `docker compose exec timescaledb psql -U postgres -d appdb`
 
-**TimescaleDB Connection:**
-- Host: `localhost`
-- Port: `5432`
-- User: `postgres`
-- Password: `localpass`
-- Database: `appdb`
+To access the database in a GUI with adminer:
 
-**Adminer Access:**
 - URL: http://localhost:8080
 - System: `PostgreSQL`
 - Server: `timescaledb`
@@ -115,7 +109,6 @@ alembic history
 2. Generate migration: `alembic revision --autogenerate -m "description of schema change"`
 3. Review the generated migration file in `alembic_migrations/versions/`
 4. Test the migration: `alembic upgrade head`
-5. Commit the migration file to version control
 
 ### 2. Testing Migrations
 
@@ -167,33 +160,4 @@ The RDS instance is not publicly accessible, so you need to go through the EC2 i
 
 2. Once on the EC2 instance, connect to RDS: `psql -h <RDS-ENDPOINT> -U postgres -d appdb -p 5432`
 
-### Option 2: Use Adminer (if you want a GUI)
-
-1. Make sure Adminer is running on the EC2 instance
-
-- Run `docker ps`.
-- If no container named adminer is running, start it: `docker run -d -p 8080:8080 --name adminer adminer`
-
-2. Forward Adminer to your local machine. This maps your local port 8080 to EC2’s 8080, where Adminer is running.
-
-```bash
-ssh -i /path/to/your/key.pem -L 8080:localhost:8080 ec2-user@<EC2-PUBLIC-IP>
-```
-
-3. Open Adminer in your browser:
-
-- Go to localhost:8080
-- Login with your RDS credentials
-    - Server: RDS Endpoint
-    - Username: postgres
-    - Password:
-    - Database: appdb
-
-
-### Option 3: Use SSH tunnel from local machine
-
-1. Forward a local port to the EC2 instance, then connect to RDS through it. This makes localhost:5432 act as if its the RDS.E.g.,
-
-`ssh -i ../engine-key.pem -L 15432:<RDS_ENDPOINT>:5432 ec2-user@<EC2 IP> -N &`
-
-2. Then if you're running scripts, use `"host": "localhost"`
+### Option 2: Use the rds_tunnel.sh script to use Adminer and use a SSH tunnel from local machine
