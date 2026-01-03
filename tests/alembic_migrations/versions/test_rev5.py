@@ -73,9 +73,9 @@ def test_rev5_columns_reverted_on_downgrade(alembic_cfg, upgraded_engine):
     parent_uuid_col = column_info(upgraded_engine, SCHEMA_NAME, "assets", "parent_uuid")
     name_col = column_info(upgraded_engine, SCHEMA_NAME, "assets", "name")
 
-    assert asset_uuid_col["type"].length == 50
-    assert parent_uuid_col["type"].length == 50
-    assert name_col["type"].length == 100
+    assert str(asset_uuid_col["type"]) == "VARCHAR(50)"
+    assert str(parent_uuid_col["type"]) == "VARCHAR(50)"
+    assert str(name_col["type"]) == "VARCHAR(100)"
 
     # --- forecast_runs table ---
     mr_col = column_info(upgraded_engine, SCHEMA_NAME, "forecast_runs", "model_run_id")
