@@ -61,22 +61,36 @@ def test_rev5_columns_updated_on_upgrade(alembic_cfg, upgraded_engine):
     assert c_col["type"].length is None
 
 
-def test_rev5_columns_reverted_on_downgrade(alembic_cfg, upgraded_engine):
-    """Check columns revert to previous state on downgrade."""
-    # Upgrade to rev5 first
+def test_rev5_columns_changed_on_upgrade_and_reverted_on_downgrade(
+    alembic_cfg, upgraded_engine
+):
+    """Check rev5 columns changed and reverted correctly."""
+    # Upgrade to rev5
     command.upgrade(alembic_cfg, "rev5")
-    # Downgrade back to rev4
+
+    # --- Check upgraded columns ---
+    for table, col_name in [
+        ("measurement", "asset_uuid"),
+        ("prediction_job", "asset_uuid"),
+        ("constraints", "asset_uuid"),
+    ]:
+        col = column_info(upgraded_engine, SCHEMA_NAME, table, col_name)
+        assert col["type"].length is None  # unlimited VARCHAR
+
+    # ForecastRun.model_run_id nullable
+    mr_col = column_info(upgraded_engine, SCHEMA_NAME, "forecast_runs", "model_run_id")
+    assert mr_col["nullable"] is True
+
+    # --- Downgrade rev5 -> rev4 ---
     command.downgrade(alembic_cfg, "rev4")
 
-    # --- assets table ---
-    asset_uuid_col = column_info(upgraded_engine, SCHEMA_NAME, "assets", "asset_uuid")
-    parent_uuid_col = column_info(upgraded_engine, SCHEMA_NAME, "assets", "parent_uuid")
-    name_col = column_info(upgraded_engine, SCHEMA_NAME, "assets", "name")
+    for table, col_name in [
+        ("measurement", "asset_uuid"),
+        ("prediction_job", "asset_uuid"),
+        ("constraints", "asset_uuid"),
+    ]:
+        col = column_info(upgraded_engine, SCHEMA_NAME, table, col_name)
+        assert col["type"].length == 50  # reverted to 50-char limit
 
-    assert str(asset_uuid_col["type"]) == "VARCHAR(50)"
-    assert str(parent_uuid_col["type"]) == "VARCHAR(50)"
-    assert str(name_col["type"]) == "VARCHAR(100)"
-
-    # --- forecast_runs table ---
     mr_col = column_info(upgraded_engine, SCHEMA_NAME, "forecast_runs", "model_run_id")
     assert mr_col["nullable"] is False
