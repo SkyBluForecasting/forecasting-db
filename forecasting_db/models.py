@@ -85,7 +85,9 @@ class ForecastRun(Base):
         ForeignKey("openstef.prediction_job.id", ondelete="CASCADE"),
         nullable=False,
     )
-    model_run_id = Column(String(100))  # e.g., MLflow run_id
+    model_run_id = Column(
+        String(100), nullable=True
+    )  # e.g., MLflow run_id. Null if a simple aggregation forecast.
     asset_uuid = Column(
         String, ForeignKey("openstef.assets.asset_uuid"), nullable=False
     )
