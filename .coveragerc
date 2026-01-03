@@ -1,6 +1,7 @@
 [run]
 omit =
     scripts/*
+    tests/*
     # you can also add other paths or files to omit
 
 [report]
