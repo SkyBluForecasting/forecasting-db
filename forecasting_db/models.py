@@ -120,7 +120,15 @@ class Forecast(Base):
 
 class Measurement(Base):
     __tablename__ = "measurement"
-    __table_args__ = {"schema": "openstef"}
+    __table_args__ = (
+        sa.UniqueConstraint(
+            "asset_uuid",
+            "timestamp",
+            "metric",
+            name="uq_measurement_asset_ts_metric",
+        ),
+        {"schema": "openstef"},
+    )
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     asset_uuid = Column(
