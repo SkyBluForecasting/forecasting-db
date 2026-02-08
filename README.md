@@ -94,6 +94,9 @@ alembic revision --autogenerate -m "name of migration"
 # Downgrade to previous version
 alembic downgrade -1
 
+# Downgrade to base
+alembic downgrade base
+
 # Show current migration status
 alembic current
 
@@ -123,6 +126,8 @@ To run tests with coverage:
 ```bash
 coverage run -m pytest tests/ && coverage report -m
 ```
+
+Note: To run migration tests, start with a clean DB.
 
 ### 3. Stopping Services
 
