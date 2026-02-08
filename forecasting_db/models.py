@@ -29,6 +29,7 @@ Base = declarative_base()
 class AssetType(str, Enum):
     system = "system"
     distribution_substation = "distribution_substation"
+    pv = "pv"
 
 
 class Asset(Base):
@@ -38,11 +39,18 @@ class Asset(Base):
     asset_uuid = Column(String, primary_key=True)
     name = Column(String, nullable=False)
 
-    asset_type = Column(SqlEnum(AssetType, name="asset_type_enum"), nullable=False)
+    asset_type = Column(
+        SqlEnum(AssetType, name="asset_type_enum", schema="public"), nullable=False
+    )
 
     capacity_kw = Column(Float, nullable=True)
 
     measured = Column(Boolean, nullable=False, default=False)
+
+    latitude = Column(Float, nullable=True)
+    longitude = Column(Float, nullable=True)
+
+    weather_site_id = Column(String, nullable=True)
 
     parent_uuid = Column(
         String, ForeignKey("openstef.assets.asset_uuid"), nullable=True
