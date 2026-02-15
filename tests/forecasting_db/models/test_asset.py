@@ -1,6 +1,7 @@
 import pytest
+from sqlalchemy.exc import IntegrityError
 
-from forecasting_db.models import Asset
+from forecasting_db.models import Asset, WeatherSite
 
 
 @pytest.fixture
@@ -12,6 +13,13 @@ def asset_tree(session):
         └── substation1 (distribution_substation)
               └── pv1 (pv)
     """
+    ws = WeatherSite(
+        weather_site_id="site_43.6532_-79.3832",
+        site_lat=43.6532,
+        site_long=-79.3832,
+    )
+    session.add(ws)
+
     parent = Asset(
         asset_uuid="system1",
         asset_type="system",
@@ -59,7 +67,7 @@ def test_asset_hierarchy_relationships(session, asset_tree):
     assert db_pv.parent.asset_uuid == "substation1"
 
 
-def test_pv_asset_can_store_location_and_weather_site(session, asset_tree):
+def test_asset_can_store_location_and_weather_site(session, asset_tree):
     db_pv = session.query(Asset).filter_by(asset_uuid="pv1").first()
 
     assert db_pv.asset_type == "pv"
@@ -90,13 +98,43 @@ def test_location_is_optional(session):
     assert db_pv.weather_site_id is None
 
 
-def test_pv_asset_weather_site_id_can_be_updated(session, asset_tree):
+def test_asset_weather_site_id_can_be_updated_if_weather_site_exists(
+    session, asset_tree
+):
+    ws2 = WeatherSite(
+        weather_site_id="site_updated",
+        site_lat=40.0,
+        site_long=-70.0,
+    )
+    session.add(ws2)
+    session.commit()
+
     db_pv = session.query(Asset).filter_by(asset_uuid="pv1").first()
     db_pv.weather_site_id = "site_updated"
     session.commit()
 
     updated = session.query(Asset).filter_by(asset_uuid="pv1").first()
     assert updated.weather_site_id == "site_updated"
+
+
+def test_asset_weather_site_id_update_fails_if_site_missing(session, asset_tree):
+    db_pv = session.query(Asset).filter_by(asset_uuid="pv1").first()
+    db_pv.weather_site_id = "does_not_exist"
+
+    with pytest.raises(IntegrityError):
+        session.commit()
+
+    session.rollback()
+
+
+def test_asset_weather_site_id_can_be_cleared(session, asset_tree):
+    db_pv = session.query(Asset).filter_by(asset_uuid="pv1").first()
+    db_pv.weather_site_id = None
+    session.commit()
+
+    updated = session.query(Asset).filter_by(asset_uuid="pv1").first()
+    assert updated.weather_site_id is None
+    assert updated.weather_site is None
 
 
 def test_assets_can_be_deleted(session, asset_tree):

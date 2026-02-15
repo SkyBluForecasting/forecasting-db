@@ -50,7 +50,14 @@ class Asset(Base):
     latitude = Column(Float, nullable=True)
     longitude = Column(Float, nullable=True)
 
-    weather_site_id = Column(String, nullable=True)
+    weather_site_id = Column(
+        String,
+        ForeignKey("product.weather_sites.weather_site_id"),
+        nullable=True,
+        index=True,
+    )
+
+    weather_site = relationship("WeatherSite", back_populates="assets")
 
     parent_uuid = Column(
         String, ForeignKey("openstef.assets.asset_uuid"), nullable=True
@@ -152,6 +159,20 @@ class Measurement(Base):
 #
 # ─── SKYBLU SCHEMA ───────────────────────────────────────────────
 #
+
+
+class WeatherSite(Base):
+    __tablename__ = "weather_sites"
+    __table_args__ = (
+        sa.UniqueConstraint("site_lat", "site_long", name="uq_weather_sites_lat_long"),
+        {"schema": "product"},
+    )
+
+    weather_site_id = Column(String, primary_key=True)
+    site_lat = Column(Float, nullable=False)
+    site_long = Column(Float, nullable=False)
+
+    assets = relationship("Asset", back_populates="weather_site")
 
 
 class Constraint(Base):
