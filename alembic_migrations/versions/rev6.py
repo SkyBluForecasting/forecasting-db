@@ -16,10 +16,8 @@ depends_on = None
 
 
 def upgrade():
-    # 1) Add enum value to existing Postgres enum
     op.execute("ALTER TYPE public.asset_type_enum ADD VALUE IF NOT EXISTS 'pv'")
 
-    # 2) Add new nullable columns to openstef.assets
     op.add_column(
         "assets", sa.Column("latitude", sa.Float(), nullable=True), schema="openstef"
     )
