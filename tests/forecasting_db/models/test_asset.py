@@ -10,8 +10,9 @@ def asset_tree(session):
     Create the following assets.
 
       system1 (system)
-        └── substation1 (distribution_substation)
-              └── pv1 (pv)
+        └── region1 (region)
+              └── substation1 (distribution_substation)
+                    └── pv1 (pv)
     """
     ws = WeatherSite(
         weather_site_id="site_43.6532_-79.3832",
@@ -20,7 +21,7 @@ def asset_tree(session):
     )
     session.add(ws)
 
-    parent = Asset(
+    system = Asset(
         asset_uuid="system1",
         asset_type="system",
         name="System 1",
@@ -28,39 +29,61 @@ def asset_tree(session):
         depth=0,
         measured=True,
     )
+
+    region = Asset(
+        asset_uuid="region1",
+        asset_type="region",
+        name="Region 1",
+        capacity_kw=None,
+        parent_uuid="system1",
+        depth=1,
+        measured=False,
+    )
+
     substation = Asset(
         asset_uuid="substation1",
         asset_type="distribution_substation",
         name="Substation 1",
         capacity_kw=5000,
-        parent_uuid="system1",
-        depth=1,
+        parent_uuid="region1",
+        depth=2,
         measured=False,
     )
+
     pv = Asset(
         asset_uuid="pv1",
         asset_type="pv",
         name="PV 1",
         capacity_kw=1200,
         parent_uuid="substation1",
-        depth=2,
+        depth=3,
         measured=False,
         latitude=43.6532,
         longitude=-79.3832,
         weather_site_id="site_43.6532_-79.3832",
     )
 
-    session.add_all([parent, substation, pv])
+    session.add_all([system, region, substation, pv])
     session.commit()
-    return {"parent": parent, "substation": substation, "pv": pv}
+
+    return {
+        "system": system,
+        "region": region,
+        "substation": substation,
+        "pv": pv,
+    }
 
 
 def test_asset_hierarchy_relationships(session, asset_tree):
     db_system = session.query(Asset).filter_by(asset_uuid="system1").first()
-    assert {c.asset_uuid for c in db_system.children} == {"substation1"}
+    assert {c.asset_uuid for c in db_system.children} == {"region1"}
+
+    db_region = session.query(Asset).filter_by(asset_uuid="region1").first()
+    assert db_region.parent.asset_uuid == "system1"
+    assert {c.asset_uuid for c in db_region.children} == {"substation1"}
 
     db_substation = session.query(Asset).filter_by(asset_uuid="substation1").first()
-    assert db_substation.parent.asset_uuid == "system1"
+    assert db_substation.parent.asset_uuid == "region1"
     assert {c.asset_uuid for c in db_substation.children} == {"pv1"}
 
     db_pv = session.query(Asset).filter_by(asset_uuid="pv1").first()
