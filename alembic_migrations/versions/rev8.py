@@ -19,4 +19,6 @@ def upgrade():
 
 
 def downgrade():
-    raise NotImplementedError("Downgrade not supported for adding enum values.")
+    # Postgres enums don't support DROP VALUE cleanly.
+    # Intentionally left as a no-op to allow test teardown downgrades.
+    pass

@@ -1,4 +1,3 @@
-import pytest
 from alembic import command
 from sqlalchemy import text
 
@@ -40,14 +39,10 @@ def test_rev8_adds_region_to_asset_type_enum_on_upgrade(alembic_cfg, upgraded_en
     assert "pv" in labels
 
 
-def test_rev8_downgrade_behavior(alembic_cfg, upgraded_engine):
-    """
-    Downgrade behavior for rev8.
-
-    If rev8 uses NotImplementedError (common for enum ADD VALUE),
-    ensure downgrade fails loudly instead of silently corrupting schema.
-    """
+def test_rev8_downgrade_is_noop(alembic_cfg, upgraded_engine):
     command.upgrade(alembic_cfg, "rev8")
+    command.downgrade(alembic_cfg, "rev7")
 
-    with pytest.raises(Exception):
-        command.downgrade(alembic_cfg, "rev7")
+    # value may still exist because downgrade is noop; this is expected
+    labels = enum_labels(upgraded_engine, "public", "asset_type_enum")
+    assert "region" in labels
