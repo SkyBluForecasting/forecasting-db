@@ -30,6 +30,7 @@ class AssetType(str, Enum):
     system = "system"
     distribution_substation = "distribution_substation"
     pv = "pv"
+    region = "region"
 
 
 class Asset(Base):
