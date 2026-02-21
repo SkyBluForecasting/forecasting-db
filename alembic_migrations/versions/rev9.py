@@ -19,11 +19,15 @@ def upgrade():
     # Create weather_variable_enum type
     op.execute(
         """
-        CREATE TYPE public.weather_variable_enum AS ENUM (
-            'ghi_wm2',
-            'temp_air_c',
-            'wind_speed_ms'
-        )
+        DO $$ BEGIN
+            CREATE TYPE public.weather_variable_enum AS ENUM (
+                'ghi_wm2',
+                'temp_air_c',
+                'wind_speed_ms'
+            );
+        EXCEPTION WHEN duplicate_object THEN
+            NULL;
+        END $$;
         """
     )
 
@@ -45,6 +49,7 @@ def upgrade():
                 "wind_speed_ms",
                 name="weather_variable_enum",
                 schema="public",
+                create_type=False,
             ),
             nullable=False,
         ),
@@ -90,6 +95,7 @@ def upgrade():
                 "wind_speed_ms",
                 name="weather_variable_enum",
                 schema="public",
+                create_type=False,
             ),
             nullable=False,
         ),
