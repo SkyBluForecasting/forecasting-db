@@ -32,10 +32,16 @@ def upgraded_engine(alembic_cfg, engine):
 
     Uses the same connection for Alembic migrations and schema setup.
     """
-    # Create schemas if missing
+    # Clean up database state before test
     with engine.begin() as conn:
-        conn.execute(text("CREATE SCHEMA IF NOT EXISTS openstef;"))
-        conn.execute(text("CREATE SCHEMA IF NOT EXISTS product;"))
+        # Drop existing schemas to ensure clean state
+        conn.execute(text("DROP SCHEMA IF EXISTS product CASCADE;"))
+        conn.execute(text("DROP SCHEMA IF EXISTS openstef CASCADE;"))
+        # Reset alembic_version table
+        conn.execute(text("DROP TABLE IF EXISTS alembic_version;"))
+        # Recreate schemas
+        conn.execute(text("CREATE SCHEMA openstef;"))
+        conn.execute(text("CREATE SCHEMA product;"))
 
     # Upgrade Alembic using the same connection
     conn = engine.connect()
@@ -44,8 +50,11 @@ def upgraded_engine(alembic_cfg, engine):
 
     yield engine
 
-    # Downgrade back to base after test
-    command.downgrade(alembic_cfg, "base")
+    # Clean up after test
+    with engine.begin() as conn:
+        conn.execute(text("DROP SCHEMA IF EXISTS product CASCADE;"))
+        conn.execute(text("DROP SCHEMA IF EXISTS openstef CASCADE;"))
+        conn.execute(text("DROP TABLE IF EXISTS alembic_version;"))
     conn.close()
 
 

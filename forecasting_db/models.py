@@ -27,6 +27,8 @@ Base = declarative_base()
 
 
 class AssetType(str, Enum):
+    """Enumeration of asset types."""
+
     system = "system"
     distribution_substation = "distribution_substation"
     pv = "pv"
@@ -34,6 +36,8 @@ class AssetType(str, Enum):
 
 
 class Asset(Base):
+    """Asset entity in the forecasting system."""
+
     __tablename__ = "assets"
     __table_args__ = {"schema": "openstef"}
 
@@ -74,6 +78,8 @@ class Asset(Base):
 
 
 class PredictionJob(Base):
+    """Defines forecast job parameters for an asset."""
+
     __tablename__ = "prediction_job"
     __table_args__ = {"schema": "openstef"}
 
@@ -92,6 +98,8 @@ class PredictionJob(Base):
 
 
 class ForecastRun(Base):
+    """Single forecast execution instance."""
+
     __tablename__ = "forecast_runs"
     __table_args__ = {"schema": "openstef"}
 
@@ -117,6 +125,8 @@ class ForecastRun(Base):
 
 
 class Forecast(Base):
+    """Individual forecast values in a forecast run."""
+
     __tablename__ = "forecast"
     __table_args__ = {"schema": "openstef"}
 
@@ -135,6 +145,8 @@ class Forecast(Base):
 
 
 class Measurement(Base):
+    """Measured asset metric data."""
+
     __tablename__ = "measurement"
     __table_args__ = (
         sa.UniqueConstraint(
@@ -162,7 +174,23 @@ class Measurement(Base):
 #
 
 
+class WeatherVariable(str, Enum):
+    """Enumeration of weather variables.
+
+    Weather parameters tracked for forecasting:
+    - ghi_wm2: Global Horizontal Irradiance in W/m²
+    - temp_air_c: Air temperature in degrees Celsius
+    - wind_speed_ms: Wind speed in meters per second
+    """
+
+    ghi_wm2 = "ghi_wm2"
+    temp_air_c = "temp_air_c"
+    wind_speed_ms = "wind_speed_ms"
+
+
 class WeatherSite(Base):
+    """Weather monitoring site."""
+
     __tablename__ = "weather_sites"
     __table_args__ = (
         sa.UniqueConstraint("site_lat", "site_long", name="uq_weather_sites_lat_long"),
@@ -176,7 +204,73 @@ class WeatherSite(Base):
     assets = relationship("Asset", back_populates="weather_site")
 
 
+class WeatherActual(Base):
+    """Actual observed weather data."""
+
+    __tablename__ = "weather_actual"
+    __table_args__ = (
+        sa.UniqueConstraint(
+            "weather_site_id",
+            "variable",
+            "timestamp",
+            name="uq_weather_actual_site_var_ts",
+        ),
+        {"schema": "product"},
+    )
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    weather_site_id = Column(
+        String,
+        ForeignKey("product.weather_sites.weather_site_id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    variable = Column(
+        SqlEnum(WeatherVariable, name="weather_variable_enum", schema="public"),
+        nullable=False,
+    )
+    value = Column(Float, nullable=False)
+    timestamp = Column(DateTime(timezone=True), nullable=False, index=True)
+
+    weather_site = relationship("WeatherSite", backref="weather_actuals")
+
+
+class WeatherForecast(Base):
+    """Weather forecast data."""
+
+    __tablename__ = "weather_forecast"
+    __table_args__ = (
+        sa.UniqueConstraint(
+            "weather_site_id",
+            "variable",
+            "timestamp",
+            "issue_time",
+            name="uq_weather_forecast_site_var_target_issue",
+        ),
+        {"schema": "product"},
+    )
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    weather_site_id = Column(
+        String,
+        ForeignKey("product.weather_sites.weather_site_id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    variable = Column(
+        SqlEnum(WeatherVariable, name="weather_variable_enum", schema="public"),
+        nullable=False,
+    )
+    value = Column(Float, nullable=False)
+    timestamp = Column(DateTime(timezone=True), nullable=False, index=True)
+    issue_time = Column(DateTime(timezone=True), nullable=False, index=True)
+
+    weather_site = relationship("WeatherSite", backref="weather_forecasts")
+
+
 class Constraint(Base):
+    """Operational constraints on asset forecasts."""
+
     __tablename__ = "constraints"
     __table_args__ = (
         sa.Index("ix_constraints_asset_ts", "asset_uuid", "timestamp"),
@@ -201,6 +295,8 @@ class Constraint(Base):
 
 
 class ForecastError(Base):
+    """Forecast errors (difference between predicted and actual values)."""
+
     __tablename__ = "forecast_errors"
     __table_args__ = (
         sa.Index("ix_forecast_errors_run_ts", "forecast_run_id", "timestamp"),
